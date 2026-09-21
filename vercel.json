@@ -3,10 +3,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/index.ts": {
-      "includeFiles": [
-        "data/database.json",
-        "public/uploads/**"
-      ]
+      "includeFiles": "data/database.json"
     }
   },
   "rewrites": [
