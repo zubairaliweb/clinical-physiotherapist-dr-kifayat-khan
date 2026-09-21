@@ -476,14 +476,15 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Dr. Kifayat Khan Physiotherapist portal running on http://0.0.0.0:${PORT}`);
-  });
+  return app;
 }
 
-if (process.env.VERCEL) {
-  // Vercel uses the runtime-provided PORT value and doesn't need a random local port search.
-  startServer();
-} else {
-  startServer();
+export const serverPromise = startServer();
+
+if (!process.env.VERCEL) {
+  serverPromise.then((app) => {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Dr. Kifayat Khan Physiotherapist portal running on http://0.0.0.0:${PORT}`);
+    });
+  });
 }
