@@ -2,7 +2,6 @@ import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import net from 'net';
 import { createServer as createViteServer } from 'vite';
 import { db } from './server/db';
 
@@ -11,26 +10,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 const DEFAULT_PORT = 3000;
-
-function getAvailablePort(startPort: number): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const tester = net.createServer();
-
-    tester.once('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE') {
-        resolve(getAvailablePort(startPort + 1));
-        return;
-      }
-      reject(err);
-    });
-
-    tester.once('listening', () => {
-      tester.close(() => resolve(startPort));
-    });
-
-    tester.listen(startPort, '0.0.0.0');
-  });
-}
+const PORT = Number(process.env.PORT) || DEFAULT_PORT;
 
 // Ensure public upload directory
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
@@ -40,7 +20,6 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 
 async function startServer() {
   const app = express();
-  const PORT = await getAvailablePort(DEFAULT_PORT);
 
   // Middlewares
   app.use(express.json({ limit: '15mb' }));
@@ -502,4 +481,9 @@ async function startServer() {
   });
 }
 
-startServer();
+if (process.env.VERCEL) {
+  // Vercel uses the runtime-provided PORT value and doesn't need a random local port search.
+  startServer();
+} else {
+  startServer();
+}
